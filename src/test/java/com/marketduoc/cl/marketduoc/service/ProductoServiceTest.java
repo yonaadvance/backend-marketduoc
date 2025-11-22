@@ -31,7 +31,8 @@ public class ProductoServiceTest {
         return new Producto(
             1L,  
             "Mouse", 
-            "Mouse gamer logitech", 
+            "Mouse gamer logitech",
+            null, // <--- AQUÍ ESTÁ EL ARREGLO: Agregamos null para la imagen
             new Date(System.currentTimeMillis()), 
             new Usuario(), 
             new Estado(),
