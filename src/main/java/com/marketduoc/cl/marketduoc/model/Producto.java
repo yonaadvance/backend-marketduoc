@@ -31,6 +31,12 @@ public class Producto {
     @Column(nullable = false)
     private String contenido;
 
+    // --- NUEVO CAMPO PARA FOTO ---
+    // Usamos TEXT porque el código Base64 es muy largo
+    @Column(columnDefinition = "TEXT") 
+    private String imagen;
+    // -----------------------------
+
     @Column(nullable = false)
     private Date fechaCreacion;
 
