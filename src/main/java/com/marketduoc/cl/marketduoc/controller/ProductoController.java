@@ -63,6 +63,11 @@ public class ProductoController {
         nuevo.setNombre(dto.getNombre());
         // Guardamos descripción y precio juntos en el contenido para no complicarnos
         nuevo.setContenido(dto.getContenido() + " (Precio: $" + dto.getPrecio() + ")");
+        
+        // --- CAMBIO CLAVE AQUÍ ---
+        nuevo.setImagen(dto.getImagen());
+        // -------------------------
+
         nuevo.setFechaCreacion(new Date());
 
         // TRUCO: Asignamos IDs fijos para cumplir con la base de datos
