@@ -8,4 +8,5 @@ public class ProductoDTO {
     private String contenido;
     private Integer precio;
     private String emailUsuario;
+    private String imagen;
 }
