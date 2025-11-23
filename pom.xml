@@ -17,7 +17,6 @@
 	<description>Aplicacion de compra y venta MarketDuoc</description>
 	<properties>
 		<java.version>17</java.version>
-		<lombok.version>1.18.32</lombok.version>
 	</properties>
 	
 	<dependencies>
@@ -37,7 +36,6 @@
 		<dependency>
     		<groupId>org.postgresql</groupId>
     		<artifactId>postgresql</artifactId>
-    		<version>42.7.2</version>
 		</dependency>
 
 		<dependency>
@@ -58,7 +56,6 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>${lombok.version}</version>
 			<optional>true</optional>
 		</dependency>
 		
@@ -79,7 +76,6 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-							<version>${lombok.version}</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
@@ -96,13 +92,6 @@
 						</exclude>
 					</excludes>
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
