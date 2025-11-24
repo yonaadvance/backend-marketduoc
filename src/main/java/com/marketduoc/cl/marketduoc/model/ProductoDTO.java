@@ -9,4 +9,5 @@ public class ProductoDTO {
     private Integer precio;
     private String emailUsuario;
     private String imagen;
+    private Long categoriaId; // Nuevo campo
 }

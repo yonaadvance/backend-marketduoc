@@ -7,14 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.transaction.Transactional;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
 public class ProductoService {
-@Autowired
+    
+    @Autowired
     private ProductoRepository productoRepository;
 
     public List<Producto> findAll() {
@@ -22,7 +23,7 @@ public class ProductoService {
     }
 
     public Producto findById(Long id) {
-        return productoRepository.findById(id).get();
+        return productoRepository.findById(id).orElse(null);
     }
 
     public Producto save(Producto producto) {
@@ -51,6 +52,10 @@ public class ProductoService {
                 productoToUpdate.setFechaCreacion(parcialProducto.getFechaCreacion());
             }
 
+            if(parcialProducto.getPrecio() != null) {
+                productoToUpdate.setPrecio(parcialProducto.getPrecio());
+            }
+
             return productoRepository.save(productoToUpdate);
         } else {
             return null;
@@ -62,7 +67,8 @@ public class ProductoService {
     }
 
     public List<Producto> findByUsuarioId(Integer usuarioId) {
-        return productoRepository.findByUsuario_id(usuarioId);
+        // CORRECCIÓN: Convertimos de manera segura
+        return productoRepository.findByUsuario_id(Long.valueOf(usuarioId));
     }
 
     public Producto findByNombreAndFechaCreacion(String nombre, Date fechaCreacion) {

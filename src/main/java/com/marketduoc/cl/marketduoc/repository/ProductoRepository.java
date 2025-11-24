@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -16,9 +16,9 @@ public interface ProductoRepository extends JpaRepository<Producto, Long>{
     
     List<Producto> findByNombre(String nombre);
 
-    Producto findById(Integer id);
+    // BORRAMOS findById porque JpaRepository ya lo trae y devuelve Optional<Producto>
 
-    List<Producto> findByUsuario_id(Integer id);
+    List<Producto> findByUsuario_id(Long id); // Aseguramos que reciba Long
 
     Producto findByNombreAndFechaCreacion(String nombre, Date fechaCreacion);
 
@@ -47,6 +47,4 @@ public interface ProductoRepository extends JpaRepository<Producto, Long>{
         @Param("categoriaNombre") String categoriaNombre,
         @Param("estadoNombre") String estadoNombre,
         @Param("usuarioNombre") String usuarioNombre);
-
-
 }

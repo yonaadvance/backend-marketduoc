@@ -1,15 +1,7 @@
 package com.marketduoc.cl.marketduoc.model;
 
 import java.util.Date;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -31,11 +23,11 @@ public class Producto {
     @Column(nullable = false)
     private String contenido;
 
-    // --- NUEVO CAMPO PARA FOTO ---
-    // Usamos TEXT porque el código Base64 es muy largo
+    @Column(nullable = true) // Nuevo campo para el precio real
+    private Integer precio;
+
     @Column(columnDefinition = "TEXT") 
     private String imagen;
-    // -----------------------------
 
     @Column(nullable = false)
     private Date fechaCreacion;

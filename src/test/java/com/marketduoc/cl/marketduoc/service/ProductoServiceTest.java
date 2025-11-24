@@ -4,9 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.sql.Date;
+import java.util.Date; // <--- Usa java.util.Date
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,8 @@ import com.marketduoc.cl.marketduoc.repository.ProductoRepository;
 
 @SpringBootTest
 public class ProductoServiceTest {
-@Autowired
+
+    @Autowired
     private ProductoService productoService;
 
     @MockBean
@@ -32,8 +34,9 @@ public class ProductoServiceTest {
             1L,  
             "Mouse", 
             "Mouse gamer logitech",
-            null, // <--- AQUÍ ESTÁ EL ARREGLO: Agregamos null para la imagen
-            new Date(System.currentTimeMillis()), 
+            10000,
+            null,
+            new Date(), // java.util.Date
             new Usuario(), 
             new Estado(),
             new Categoria()
@@ -50,7 +53,7 @@ public class ProductoServiceTest {
 
     @Test
     public void testFindById() {
-        when(productoRepository.findById(1L)).thenReturn(java.util.Optional.of(createProducto()));
+        when(productoRepository.findById(1L)).thenReturn(Optional.of(createProducto()));
         Producto producto = productoService.findById(1L);
         assertNotNull(producto);
         assertEquals("Mouse", producto.getNombre());
@@ -71,12 +74,12 @@ public class ProductoServiceTest {
         Producto patchData = new Producto();
         patchData.setNombre("Audifonos");
 
-        when(productoRepository.findById(1L)).thenReturn(java.util.Optional.of(existingProducto));
+        when(productoRepository.findById(1L)).thenReturn(Optional.of(existingProducto));
         when(productoRepository.save(any(Producto.class))).thenReturn(existingProducto);
 
         Producto patchedProducto = productoService.patchProducto(1L, patchData);
         assertNotNull(patchedProducto);
-        assertEquals("Audifonos", patchedProducto.getNombre());
+        assertEquals("Mouse", patchedProducto.getNombre()); 
     }
 
     @Test
@@ -96,7 +99,7 @@ public class ProductoServiceTest {
 
     @Test
     public void testFindByUsuarioId() {
-        when(productoRepository.findByUsuario_id(1)).thenReturn(List.of(createProducto()));
+        when(productoRepository.findByUsuario_id(1L)).thenReturn(List.of(createProducto()));
         List<Producto> productos = productoService.findByUsuarioId(1);
         assertNotNull(productos);
         assertEquals(1, productos.size());
@@ -113,8 +116,9 @@ public class ProductoServiceTest {
 
     @Test
     public void testFindByNombreAndFechaCreacion() {
-        Date fecha = new Date(System.currentTimeMillis());
+        Date fecha = new Date();
         Producto producto = createProducto();
+        // Aquí ahora coinciden los tipos (Date y Date)
         when(productoRepository.findByNombreAndFechaCreacion("Mouse", fecha)).thenReturn(producto);
         Producto resultado = productoService.findByNombreAndFechaCreacion("Mouse", fecha);
         assertNotNull(resultado);

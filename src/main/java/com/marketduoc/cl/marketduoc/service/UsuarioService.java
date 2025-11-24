@@ -35,7 +35,10 @@ public class UsuarioService {
     public void delete(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario con id " + id + " no encontrado"));
-        List<Producto> productos = productoRepository.findByUsuario_id(id.intValue());
+        
+        // CORRECCIÓN: Pasamos 'id' directamente, ya que es Long. No usamos .intValue()
+        List<Producto> productos = productoRepository.findByUsuario_id(id);
+        
         for (Producto p : productos) {
             productoRepository.delete(p);
         }

@@ -1,30 +1,23 @@
 package com.marketduoc.cl.marketduoc.controller;
 
 import com.marketduoc.cl.marketduoc.model.Producto;
-import com.marketduoc.cl.marketduoc.service.ProductoService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import com.marketduoc.cl.marketduoc.model.ProductoDTO;
 import com.marketduoc.cl.marketduoc.model.Usuario;
-import com.marketduoc.cl.marketduoc.model.Estado;
 import com.marketduoc.cl.marketduoc.model.Categoria;
-import java.util.Date;
+import com.marketduoc.cl.marketduoc.model.Estado;
+import com.marketduoc.cl.marketduoc.service.ProductoService;
+import com.marketduoc.cl.marketduoc.repository.UsuarioRepository;
+import com.marketduoc.cl.marketduoc.repository.CategoriaRepository;
+import com.marketduoc.cl.marketduoc.repository.EstadoRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/productos")
@@ -34,15 +27,39 @@ public class ProductoController {
 
     @Autowired
     private ProductoService productoService;
+    
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private CategoriaRepository categoriaRepository;
+    
+    @Autowired
+    private EstadoRepository estadoRepository;
 
     @GetMapping
-    @Operation(summary = "Listar todos los productos", description = "Devuelve una lista de todos los productos publicados")
-    public ResponseEntity<List<Producto>> listarProductos() {
+    @Operation(summary = "Listar todos los productos", description = "Devuelve una lista de productos formateada para la App")
+    public ResponseEntity<List<ProductoDTO>> listarProductos() {
         List<Producto> productos = productoService.findAll();
-        if (productos.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(productos);
+        
+        // Convertimos la lista de la base de datos a DTOs para la App
+        List<ProductoDTO> dtos = productos.stream().map(p -> {
+            ProductoDTO dto = new ProductoDTO();
+            dto.setNombre(p.getNombre());
+            dto.setContenido(p.getContenido());
+            dto.setPrecio(p.getPrecio() != null ? p.getPrecio() : 0);
+            dto.setImagen(p.getImagen());
+            
+            // Si tiene usuario, mandamos su correo, si no, "Anónimo"
+            dto.setEmailUsuario(p.getUsuario() != null ? p.getUsuario().getCorreo() : "Anónimo");
+            
+            // Si tiene categoría, mandamos su ID, si no, 1 (Tecnología)
+            dto.setCategoriaId(p.getCategoria() != null ? p.getCategoria().getId() : 1L);
+            
+            return dto;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/{id}")
@@ -56,56 +73,42 @@ public class ProductoController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo producto desde Móvil", description = "Publica un producto recibiendo datos simples")
+    @Operation(summary = "Crear un nuevo producto", description = "Publica un producto vinculándolo al usuario y categoría real")
     public ResponseEntity<Producto> crearProducto(@RequestBody ProductoDTO dto) {
         Producto nuevo = new Producto();
-        // Copiamos los datos simples que vienen del celular
         nuevo.setNombre(dto.getNombre());
-        // Guardamos descripción y precio juntos en el contenido para no complicarnos
-        nuevo.setContenido(dto.getContenido() + " (Precio: $" + dto.getPrecio() + ")");
-        
-        // --- CAMBIO CLAVE AQUÍ ---
+        nuevo.setContenido(dto.getContenido());
+        nuevo.setPrecio(dto.getPrecio());
         nuevo.setImagen(dto.getImagen());
-        // -------------------------
-
         nuevo.setFechaCreacion(new Date());
 
-        // TRUCO: Asignamos IDs fijos para cumplir con la base de datos
-        // IMPORTANTE: Debes asegurarte de que existan el Usuario 1, Estado 1 y Categoría 1 en tu BD de Render después.
-
-        Usuario usuario = new Usuario(); 
-        usuario.setId(1L); // Asumimos que siempre lo crea el usuario con ID 1 (admin o genérico)
+        // 1. Buscamos al usuario por su correo
+        Usuario usuario = usuarioRepository.findByCorreo(dto.getEmailUsuario());
+        if (usuario == null) {
+            // Si no existe, asignamos el usuario 1 por seguridad
+            usuario = new Usuario();
+            usuario.setId(1L);
+        }
         nuevo.setUsuario(usuario);
 
-        Estado estado = new Estado(); 
-        estado.setId(1L); // Asumimos estado "Activo" o similar
-        nuevo.setEstado(estado);
-
-        Categoria categoria = new Categoria(); 
-        categoria.setId(1L); // Asumimos una categoría por defecto
+        // 2. Buscamos la categoría
+        Long catId = dto.getCategoriaId() != null ? dto.getCategoriaId() : 1L;
+        Categoria categoria = categoriaRepository.findById(catId).orElse(null);
+        if (categoria == null) {
+            categoria = new Categoria();
+            categoria.setId(1L);
+        }
         nuevo.setCategoria(categoria);
 
+        // 3. Asignamos estado "Disponible" (ID 1)
+        Estado estado = estadoRepository.findById(1L).orElse(null);
+        if (estado == null) {
+             estado = new Estado(); 
+             estado.setId(1L);
+        }
+        nuevo.setEstado(estado);
+
         return ResponseEntity.status(201).body(productoService.save(nuevo));
-    }
-
-    @PutMapping("/{id}")
-    @Operation(summary = "Actualizar un producto existente", description = "Reemplaza completamente los datos de un producto dado su ID")
-    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto producto) {
-        Producto actualizado = productoService.save(producto);
-        if (actualizado == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(actualizado);
-    }
-
-    @PatchMapping("/{id}")
-    @Operation(summary = "Actualizar parcialmente un producto", description = "Modifica uno o varios campos de un producto existente")
-    public ResponseEntity<Producto> actualizarParcialProducto(@PathVariable Long id, @RequestBody Producto parcialProducto) {
-        Producto productoActualizado = productoService.patchProducto(id, parcialProducto);
-        if (productoActualizado == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(productoActualizado);
     }
 
     @DeleteMapping("/{id}")
