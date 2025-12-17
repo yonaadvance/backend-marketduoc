@@ -24,7 +24,7 @@ public class ProductoController {
     @Autowired private CategoriaRepository categoriaRepository;
     @Autowired private EstadoRepository estadoRepository;
     
-    // Usamos el nombre correcto de tu repositorio
+    // Tu repositorio correcto
     @Autowired private TipoUsuarioRepository tipoUsuarioRepository;
 
     @GetMapping
@@ -65,36 +65,39 @@ public class ProductoController {
             usuario.setApellidos("Usuario");
             usuario.setContraseña("123456");
 
-            // Buscamos el TipoUsuario (Estudiante)
-            // Nota: Usamos 1L porque en tu repositorio extiendes de JpaRepository<TipoUsuario, Long>
+            // Lógica de TipoUsuario (Usando tu repositorio correcto)
             TipoUsuario tipo = tipoUsuarioRepository.findById(1L).orElse(null);
-            
             if (tipo == null) {
                 tipo = new TipoUsuario();
                 tipo.setNombre("Estudiante");
                 tipo = tipoUsuarioRepository.save(tipo);
             }
-            
-            // Aquí usamos el setter correcto basado en tu modelo Usuario.java
             usuario.setTipoUsuario(tipo);
-            
             usuario = usuarioRepository.save(usuario);
         }
         nuevo.setUsuario(usuario);
 
-        // --- LÓGICA DE CATEGORÍAS ---
+        // --- LÓGICA DE CATEGORÍAS (AQUÍ ESTÁ EL CAMBIO) ---
+        // Recuperamos el ID que mandó el celular (1, 2 o 3)
         Long catId = dto.getCategoriaId() != null ? dto.getCategoriaId() : 1L;
+        
+        // Buscamos si existe
         Categoria categoria = categoriaRepository.findById(catId).orElse(null);
         
         if (categoria == null) {
-            // Si no existe, intentamos buscar la 1 por defecto
-            categoria = categoriaRepository.findById(1L).orElse(null); 
-            if (categoria == null) {
-                // Solo si NO hay nada en la base de datos, creamos la 1
-                categoria = new Categoria();
-                categoria.setNombre("Tecnología");
-                categoria = categoriaRepository.save(categoria);
+            // Si la categoría NO existe, la creamos con el nombre correcto
+            categoria = new Categoria();
+            
+            if (catId == 2L) {
+                categoria.setNombre("Manual");
+            } else if (catId == 3L) {
+                categoria.setNombre("Otros");
+            } else {
+                categoria.setNombre("Tecnología"); // ID 1 por defecto
             }
+            
+            // Guardamos la nueva categoría en la BD para que exista para siempre
+            categoria = categoriaRepository.save(categoria);
         }
         nuevo.setCategoria(categoria);
 
