@@ -45,6 +45,11 @@ public class ProductoController {
         // Convertimos la lista de la base de datos a DTOs para la App
         List<ProductoDTO> dtos = productos.stream().map(p -> {
             ProductoDTO dto = new ProductoDTO();
+            
+            // --- AQUÍ ESTÁ EL CAMBIO IMPORTANTE ---
+            dto.setId(p.getId()); // Enviamos el ID real para que la app sepa cuál borrar
+            // -------------------------------------
+            
             dto.setNombre(p.getNombre());
             dto.setContenido(p.getContenido());
             dto.setPrecio(p.getPrecio() != null ? p.getPrecio() : 0);
